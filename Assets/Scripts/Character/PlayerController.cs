@@ -5,6 +5,7 @@ using System;
 
 public class PlayerController : MonoBehaviour
 {
+    public GestureControl4Game gesture;
     public GameObject model;
     public GameObject playerCamera;
     public GameObject minimapCamera;
@@ -15,6 +16,7 @@ public class PlayerController : MonoBehaviour
     new Rigidbody rigidbody;
     public float Ysensitivity;
     private Vector3 forward;
+    string ges;
 
     private bool active = true;
 
@@ -35,6 +37,7 @@ public class PlayerController : MonoBehaviour
     {
         if (active)
         {
+            ges = gesture.GetGesture();
             UpdateCamera();
             UpdatePlayerRotationAndAnimation();
             UpdateSpray();
@@ -125,9 +128,16 @@ public class PlayerController : MonoBehaviour
     void UpdateCamera()
     {
         float cameraRotation = 0f;
-        
+
         if (Input.GetKey(KeyCode.Q)) cameraRotation -= 1f;
-        if(Input.GetKey(KeyCode.E)) cameraRotation += 1f;
+        if (Input.GetKey(KeyCode.E)) cameraRotation += 1f;
+        if (ges == "RotateQ") cameraRotation -= 0.5f;
+        if (ges == "RotateE") cameraRotation += 0.5f;
+
+        if (Input.GetMouseButton(1))
+            cameraRotation = (Input.mousePosition - lastMousePosition).x * mouseSensitivity;
+
+        Debug.Log(cameraRotation);
 
         playerCamera.transform.RotateAround(transform.position + new Vector3(0f, 0.5f, 0f), Vector3.up, cameraRotation * cameraRotationSpeed);
 
@@ -165,13 +175,25 @@ public class PlayerController : MonoBehaviour
 
 
     public Vector2 GetMovementInput()
-	{
-        return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    {
+        if (ges == "Right")
+            return new Vector2(1, 0);
+        else if (ges == "Left")
+            return new Vector2(-1, 0);
+        else if (ges == "Forward")
+            return new Vector2(0, 1);
+        else if (ges == "Backward")
+            return new Vector2(0, -1);
+        else
+            return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
     }
 
     public bool GetJumpInput()
-	{
-        return Input.GetKeyDown(KeyCode.Space);
+    {
+        if (ges == "Up")
+            return true;
+        else
+            return Input.GetKeyDown(KeyCode.Space);
 	}
 
     public bool GetSprintInput()
